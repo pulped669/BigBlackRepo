@@ -232,12 +232,10 @@ function tossFromCycle(cycle: number, drift = 1): Toss {
 function FlipToss({
   children,
   reducedMotion,
-  posRef,
   drift = 1,
 }: {
   children: ReactNode;
   reducedMotion: boolean;
-  posRef: RefObject<THREE.Vector3>;
   drift?: number;
 }) {
   const ref = useRef<THREE.Group>(null);
@@ -253,7 +251,6 @@ function FlipToss({
     if (reducedMotion) {
       g.position.set(0, 0.05, 0);
       g.rotation.set(-Math.PI / 2 + 0.18, elapsed.current * 0.35, 0.08);
-      posRef.current.copy(g.position);
       elapsed.current += d;
       return;
     }
@@ -268,7 +265,6 @@ function FlipToss({
 
     if (wrapped > TOSS) {
       g.position.set(toss.current.xDrift * 0.15, Y0, 0);
-      posRef.current.copy(g.position);
       return;
     }
 
@@ -280,7 +276,6 @@ function FlipToss({
     const z = toss.current.zDrift * lift;
 
     g.position.set(x, y, z);
-    posRef.current.copy(g.position);
     g.rotation.order = "XYZ";
     g.rotation.x = -Math.PI / 2 + toss.current.spinSign * u * toss.current.flips * Math.PI * 2;
     g.rotation.y = toss.current.yaw * u * Math.PI * 2;
@@ -288,33 +283,6 @@ function FlipToss({
   });
 
   return <group ref={ref}>{children}</group>;
-}
-
-function CoinShadow({ posRef }: { posRef: RefObject<THREE.Vector3> }) {
-  const mesh = useRef<THREE.Mesh>(null);
-
-  useFrame(() => {
-    const m = mesh.current;
-    if (!m) return;
-    const p = posRef.current;
-    const mat = m.material as THREE.MeshBasicMaterial;
-    if (p.y < -1.45) {
-      mat.opacity = 0;
-      return;
-    }
-    const t = Math.min(Math.max((p.y + 1.2) / 3.4, 0), 1);
-    m.position.set(p.x * 0.92, -1.18, p.z);
-    const s = 1.28 - t * 0.72;
-    m.scale.setScalar(s);
-    mat.opacity = 0.34 * (1 - t * 0.78);
-  });
-
-  return (
-    <mesh ref={mesh} rotation={[-Math.PI / 2, 0, 0]} renderOrder={-1}>
-      <circleGeometry args={[0.98, 48]} />
-      <meshBasicMaterial color="#000000" transparent opacity={0.22} depthWrite={false} />
-    </mesh>
-  );
 }
 
 function Lights() {
@@ -352,7 +320,6 @@ function BarrelClock({
 
 export function CoinCanvas({ reducedMotion = false, className }: Props) {
   const isMobile = typeof window !== "undefined" && window.innerWidth < 720;
-  const posRef = useRef(new THREE.Vector3(0, 0.05, 0));
   const barrelRef = useRef<BarrelCrtEffect>(null);
 
   return (
@@ -374,8 +341,7 @@ export function CoinCanvas({ reducedMotion = false, className }: Props) {
       >
         <LocalEnvironment />
         <Lights />
-        <CoinShadow posRef={posRef} />
-        <FlipToss reducedMotion={reducedMotion} posRef={posRef} drift={isMobile ? 0.42 : 1}>
+        <FlipToss reducedMotion={reducedMotion} drift={isMobile ? 0.42 : 1}>
           <group scale={isMobile ? 0.64 : 0.82}>
             <CoinMesh />
           </group>
