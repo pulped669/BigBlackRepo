@@ -10,6 +10,7 @@ type Props = {
   variant?: "hero" | "studio";
   reducedMotion?: boolean;
   className?: string;
+  onReady?: () => void;
 };
 
 const TOSS = 4.4;
@@ -318,7 +319,23 @@ function BarrelClock({
   return null;
 }
 
-export function CoinCanvas({ reducedMotion = false, className }: Props) {
+function ReadyPing({ onReady }: { onReady?: () => void }) {
+  useTexture("/coin-front.png");
+  const frames = useRef(0);
+  const sent = useRef(false);
+
+  useFrame(() => {
+    if (!onReady || sent.current) return;
+    frames.current += 1;
+    if (frames.current < 10) return;
+    sent.current = true;
+    onReady();
+  });
+
+  return null;
+}
+
+export function CoinCanvas({ reducedMotion = false, className, onReady }: Props) {
   const isMobile = typeof window !== "undefined" && window.innerWidth < 720;
   const barrelRef = useRef<BarrelCrtEffect>(null);
 
@@ -341,6 +358,7 @@ export function CoinCanvas({ reducedMotion = false, className }: Props) {
       >
         <LocalEnvironment />
         <Lights />
+        <ReadyPing onReady={onReady} />
         <FlipToss reducedMotion={reducedMotion} drift={isMobile ? 0.42 : 1}>
           <group scale={isMobile ? 0.64 : 0.82}>
             <CoinMesh />
