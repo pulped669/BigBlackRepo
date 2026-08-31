@@ -1,17 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 
-const SNOW_W = 160;
-const SNOW_H = 90;
+const SNOW_W = 280;
+const SNOW_H = 160;
 
 function paintSnow(ctx: CanvasRenderingContext2D, data: ImageData) {
   const pix = data.data;
   for (let i = 0; i < pix.length; i += 4) {
     const n = Math.random();
-    if (n > 0.38) {
-      pix[i] = 4;
-      pix[i + 1] = 4;
-      pix[i + 2] = 6;
-      pix[i + 3] = 90 + n * 165;
+    if (n > 0.78) {
+      pix[i] = 6;
+      pix[i + 1] = 6;
+      pix[i + 2] = 8;
+      pix[i + 3] = 36 + n * 70;
     } else {
       pix[i] = 0;
       pix[i + 1] = 0;

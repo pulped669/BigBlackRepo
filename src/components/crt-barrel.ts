@@ -4,11 +4,13 @@ import { Uniform, Vector2 } from "three";
 
 const fragmentShader = /* glsl */ `
 uniform float amount;
+uniform float zoom;
 uniform vec2 aberration;
 uniform float time;
 
 void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
   vec2 p = uv * 2.0 - 1.0;
+  p *= zoom;
   p *= 1.0 + amount * dot(p, p);
   vec2 warped = p * 0.5 + 0.5;
 
@@ -31,11 +33,16 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
 
 type BarrelOpts = {
   amount?: number;
+  zoom?: number;
   aberration?: Vector2 | [number, number];
 };
 
 export class BarrelCrtEffect extends Effect {
-  constructor({ amount = 0.18, aberration = [0.0028, 0.0012] }: BarrelOpts = {}) {
+  constructor({
+    amount = 0.18,
+    zoom = 0.94,
+    aberration = [0.0028, 0.0012],
+  }: BarrelOpts = {}) {
     const ab =
       aberration instanceof Vector2
         ? aberration.clone()
@@ -45,6 +52,7 @@ export class BarrelCrtEffect extends Effect {
       blendFunction: BlendFunction.NORMAL,
       uniforms: new Map<string, Uniform>([
         ["amount", new Uniform(amount)],
+        ["zoom", new Uniform(zoom)],
         ["aberration", new Uniform(ab)],
         ["time", new Uniform(0)],
       ]),

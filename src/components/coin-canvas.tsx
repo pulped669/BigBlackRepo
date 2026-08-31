@@ -213,15 +213,15 @@ type Toss = {
   spinSign: number;
 };
 
-function tossFromCycle(cycle: number): Toss {
+function tossFromCycle(cycle: number, drift = 1): Toss {
   const n = cycle * 9973;
   const rnd = (offset: number) => {
     const x = Math.sin(n + offset * 12.9898) * 43758.5453;
     return x - Math.floor(x);
   };
   return {
-    xDrift: (rnd(1) - 0.5) * 1.35,
-    zDrift: (rnd(2) - 0.5) * 0.45,
+    xDrift: (rnd(1) - 0.5) * 1.35 * drift,
+    zDrift: (rnd(2) - 0.5) * 0.45 * drift,
     flips: 3.15 + rnd(3) * 1.35,
     yaw: (rnd(4) - 0.5) * 1.4,
     tilt: 0.12 + rnd(5) * 0.16,
@@ -233,15 +233,17 @@ function FlipToss({
   children,
   reducedMotion,
   posRef,
+  drift = 1,
 }: {
   children: ReactNode;
   reducedMotion: boolean;
   posRef: RefObject<THREE.Vector3>;
+  drift?: number;
 }) {
   const ref = useRef<THREE.Group>(null);
   const elapsed = useRef(1.05);
   const cycle = useRef(0);
-  const toss = useRef<Toss>(tossFromCycle(0));
+  const toss = useRef<Toss>(tossFromCycle(0, drift));
 
   useFrame((_, delta) => {
     const g = ref.current;
@@ -261,7 +263,7 @@ function FlipToss({
     const nextCycle = Math.floor(elapsed.current / PERIOD);
     if (nextCycle !== cycle.current) {
       cycle.current = nextCycle;
-      toss.current = tossFromCycle(nextCycle);
+      toss.current = tossFromCycle(nextCycle, drift);
     }
 
     if (wrapped > TOSS) {
@@ -359,8 +361,8 @@ export function CoinCanvas({ reducedMotion = false, className }: Props) {
         dpr={isMobile ? [1, 1.5] : [1, 2]}
         gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
         camera={{
-          position: isMobile ? [0, 0.2, 5.6] : [0, 0.22, 5.15],
-          fov: isMobile ? 38 : 34,
+          position: isMobile ? [0, 0.18, 6.35] : [0, 0.22, 5.15],
+          fov: isMobile ? 36 : 34,
         }}
         onCreated={({ gl, camera }) => {
           gl.toneMapping = THREE.ACESFilmicToneMapping;
@@ -373,8 +375,8 @@ export function CoinCanvas({ reducedMotion = false, className }: Props) {
         <LocalEnvironment />
         <Lights />
         <CoinShadow posRef={posRef} />
-        <FlipToss reducedMotion={reducedMotion} posRef={posRef}>
-          <group scale={isMobile ? 0.76 : 0.82}>
+        <FlipToss reducedMotion={reducedMotion} posRef={posRef} drift={isMobile ? 0.42 : 1}>
+          <group scale={isMobile ? 0.64 : 0.82}>
             <CoinMesh />
           </group>
         </FlipToss>
@@ -382,8 +384,9 @@ export function CoinCanvas({ reducedMotion = false, className }: Props) {
         <EffectComposer multisampling={0} enableNormalPass={false}>
           <BarrelCrt
             ref={barrelRef}
-            amount={isMobile ? 0.14 : 0.19}
-            aberration={[0.0028, 0.00115]}
+            amount={isMobile ? 0.11 : 0.19}
+            zoom={isMobile ? 0.72 : 0.94}
+            aberration={isMobile ? [0.0016, 0.0007] : [0.0028, 0.00115]}
           />
         </EffectComposer>
       </Canvas>
