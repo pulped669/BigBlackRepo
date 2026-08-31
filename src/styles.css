@@ -149,14 +149,242 @@
   }
 }
 
-.grain-overlay {
+.crt-picture {
+  min-height: 100dvh;
+  isolation: isolate;
+}
+
+.crt-overlay {
   position: fixed;
   inset: 0;
+  z-index: 80;
   pointer-events: none;
-  z-index: 60;
-  opacity: 0.07;
+  overflow: hidden;
+}
+
+.crt-snow {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+  filter: contrast(1.45);
+}
+
+.crt-scanlines {
+  position: absolute;
+  inset: 0;
+  opacity: 0.55;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 0.28) 0px,
+    rgb(0 0 0 / 0.28) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+.crt-phosphor {
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgb(170 210 170 / 0.05) 0px,
+    transparent 2px,
+    rgb(160 170 210 / 0.04) 3px,
+    transparent 5px
+  );
   mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+.crt-roll {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 16%;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgb(0 0 0 / 0.16) 48%,
+    rgb(255 255 255 / 0.05) 52%,
+    transparent 100%
+  );
+  mix-blend-mode: multiply;
+  animation: crt-roll 8.4s linear infinite;
+}
+
+.crt-glitch {
+  position: absolute;
+  inset: 0;
+}
+
+.crt-glitch span {
+  position: absolute;
+  left: -8%;
+  width: 116%;
+  opacity: 0;
+}
+
+.crt-glitch-a {
+  top: 18%;
+  height: 9px;
+  background: linear-gradient(90deg, rgb(255 40 40 / 0.35), rgb(40 220 255 / 0.28));
+  mix-blend-mode: screen;
+  animation: crt-glitch-a 4.6s steps(1, end) infinite;
+}
+
+.crt-glitch-b {
+  top: 57%;
+  height: 14px;
+  background: linear-gradient(90deg, rgb(0 0 0 / 0.55), rgb(220 220 255 / 0.18), rgb(0 0 0 / 0.4));
+  mix-blend-mode: multiply;
+  animation: crt-glitch-b 6.2s steps(1, end) infinite;
+}
+
+.crt-glitch-c {
+  top: 78%;
+  height: 5px;
+  background: rgb(180 255 255 / 0.28);
+  mix-blend-mode: screen;
+  animation: crt-glitch-c 5.1s steps(1, end) infinite;
+}
+
+.crt-vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 74% 68% at 50% 48%, transparent 38%, rgb(0 0 0 / 0.58) 100%),
+    radial-gradient(ellipse at center, transparent 52%, rgb(0 0 0 / 0.78) 100%);
+  box-shadow: inset 0 0 140px 36px rgb(0 0 0 / 0.72);
+}
+
+.crt-glass {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    165deg,
+    rgb(255 255 255 / 0.16) 0%,
+    rgb(255 255 255 / 0.04) 22%,
+    transparent 38%,
+    transparent 72%,
+    rgb(0 0 0 / 0.18) 100%
+  );
+}
+
+.crt-flicker {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 0.08);
+  animation: crt-flicker 0.14s steps(2, end) infinite;
+  mix-blend-mode: multiply;
+}
+
+@keyframes crt-roll {
+  from {
+    transform: translateY(-30%);
+  }
+  to {
+    transform: translateY(130vh);
+  }
+}
+
+@keyframes crt-flicker {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  62% {
+    opacity: 0.15;
+  }
+}
+
+@keyframes crt-glitch-a {
+  0%,
+  86%,
+  100% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  87% {
+    opacity: 0.85;
+    transform: translateX(18px);
+  }
+  89% {
+    opacity: 0;
+  }
+  93% {
+    opacity: 0.7;
+    transform: translateX(-22px);
+  }
+  94.5% {
+    opacity: 0;
+  }
+}
+
+@keyframes crt-glitch-b {
+  0%,
+  71%,
+  100% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  72% {
+    opacity: 0.9;
+    transform: translateX(-28px);
+  }
+  74% {
+    opacity: 0;
+  }
+  81% {
+    opacity: 0.55;
+    transform: translateX(14px);
+  }
+  82.5% {
+    opacity: 0;
+  }
+}
+
+@keyframes crt-glitch-c {
+  0%,
+  90%,
+  100% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  91% {
+    opacity: 0.8;
+    transform: translateX(26px) scaleY(1.8);
+  }
+  92.4% {
+    opacity: 0;
+  }
+}
+
+.crt-overlay.is-still .crt-roll,
+.crt-overlay.is-still .crt-glitch,
+.crt-overlay.is-still .crt-flicker {
+  animation: none;
+  opacity: 0;
+}
+
+.crt-overlay.is-still .crt-snow {
+  opacity: 0.22;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crt-roll,
+  .crt-glitch span,
+  .crt-flicker {
+    animation: none;
+    opacity: 0;
+  }
 }
 
 .vignette {

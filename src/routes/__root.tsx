@@ -1,5 +1,6 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 import { AuthProvider } from "@/lib/auth/provider";
+import { CrtOverlay } from "@/components/crt-overlay";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import appCss from "../styles.css?url";
 
@@ -33,8 +34,11 @@ export const Route = createRootRoute({
       <body className="bg-bg text-fg">
         <PreviewHostBridge />
         <AuthProvider>
-          <Outlet />
+          <div className="crt-picture">
+            <Outlet />
+          </div>
         </AuthProvider>
+        <CrtOverlay />
         <Scripts />
       </body>
     </html>

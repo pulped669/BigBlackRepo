@@ -1,8 +1,10 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
-import { useEffect, useMemo, useRef } from "react";
+import { EffectComposer } from "@react-three/postprocessing";
+import { useEffect, useMemo, useRef, type ReactNode, type RefObject } from "react";
 import * as THREE from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+import { BarrelCrt, BarrelCrtEffect } from "@/components/crt-barrel";
 
 type Props = {
   variant?: "hero" | "studio";
@@ -16,6 +18,14 @@ const PERIOD = TOSS + REST;
 const G = 2.72;
 const Y0 = -4.35;
 const V0 = 5.98;
+const THICK = 0.15;
+const HALF = THICK / 2;
+const METAL = {
+  color: "#050507",
+  metalness: 0.92,
+  roughness: 0.28,
+  envMapIntensity: 1.05,
+} as const;
 
 function makeReverseTexture() {
   const c = document.createElement("canvas");
@@ -23,18 +33,34 @@ function makeReverseTexture() {
   c.height = 1024;
   const ctx = c.getContext("2d");
   if (!ctx) return new THREE.CanvasTexture(c);
-  ctx.fillStyle = "#000000";
+
+  const wash = ctx.createRadialGradient(512, 480, 60, 512, 512, 520);
+  wash.addColorStop(0, "#1a1b1e");
+  wash.addColorStop(0.55, "#070708");
+  wash.addColorStop(1, "#000000");
+  ctx.fillStyle = wash;
   ctx.fillRect(0, 0, 1024, 1024);
-  ctx.strokeStyle = "#141414";
+
+  ctx.strokeStyle = "#2a2c32";
+  ctx.lineWidth = 16;
+  ctx.beginPath();
+  ctx.arc(512, 512, 478, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.strokeStyle = "#121214";
   ctx.lineWidth = 8;
   ctx.beginPath();
   ctx.arc(512, 512, 430, 0, Math.PI * 2);
   ctx.stroke();
-  ctx.fillStyle = "#c8ccd4";
+
+  ctx.shadowColor = "#000000";
+  ctx.shadowBlur = 18;
+  ctx.fillStyle = "#d5d8e0";
   ctx.font = "800 240px 'Arial Narrow', Impact, sans-serif";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText("$BBC", 512, 524);
+
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 8;
@@ -51,7 +77,7 @@ function LocalEnvironment() {
     const envScene = new RoomEnvironment();
     const env = pmrem.fromScene(envScene, 0.04).texture;
     scene.environment = env;
-    scene.environmentIntensity = 0;
+    scene.environmentIntensity = 0.55;
     return () => {
       scene.environment = null;
       env.dispose();
@@ -75,29 +101,38 @@ function CoinMesh() {
 
   const body = useMemo(
     () =>
-      new THREE.MeshBasicMaterial({
-        color: "#000000",
+      new THREE.MeshStandardMaterial({
+        ...METAL,
       }),
     [],
   );
   const rim = useMemo(
     () =>
-      new THREE.MeshBasicMaterial({
-        color: "#000000",
+      new THREE.MeshStandardMaterial({
+        color: "#121318",
+        metalness: 0.97,
+        roughness: 0.18,
+        envMapIntensity: 1.25,
       }),
     [],
   );
   const reverseMat = useMemo(
     () =>
-      new THREE.MeshBasicMaterial({
+      new THREE.MeshStandardMaterial({
         map: reverseMap,
+        metalness: 0.62,
+        roughness: 0.36,
+        envMapIntensity: 0.85,
       }),
     [reverseMap],
   );
   const frontMat = useMemo(
     () =>
-      new THREE.MeshBasicMaterial({
+      new THREE.MeshStandardMaterial({
         map: frontMap,
+        metalness: 0.58,
+        roughness: 0.38,
+        envMapIntensity: 0.9,
       }),
     [frontMap],
   );
@@ -114,20 +149,29 @@ function CoinMesh() {
 
   return (
     <group>
-      <mesh material={body} castShadow receiveShadow>
-        <cylinderGeometry args={[1, 1, 0.12, 192]} />
+      <mesh material={body} castShadow>
+        <cylinderGeometry args={[1, 1, THICK, 192]} />
       </mesh>
       <mesh material={rim} position={[0, 0.001, 0]}>
-        <cylinderGeometry args={[1.008, 1.008, 0.118, 192]} />
+        <cylinderGeometry args={[1.012, 1.012, THICK * 0.97, 192]} />
       </mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.0615, 0]} material={frontMat}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, HALF + 0.001, 0]} material={frontMat}>
         <circleGeometry args={[0.93, 96]} />
       </mesh>
-      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, -0.0615, 0]} material={reverseMat}>
+      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, -HALF - 0.001, 0]} material={reverseMat}>
         <circleGeometry args={[0.93, 96]} />
       </mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.062, 0]} material={rim}>
-        <ringGeometry args={[0.93, 0.988, 128]} />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, HALF + 0.0015, 0]} material={rim}>
+        <ringGeometry args={[0.93, 0.99, 128]} />
+      </mesh>
+      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, -HALF - 0.0015, 0]} material={rim}>
+        <ringGeometry args={[0.93, 0.99, 128]} />
+      </mesh>
+      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, HALF, 0]} material={rim}>
+        <torusGeometry args={[0.998, 0.015, 12, 192]} />
+      </mesh>
+      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, -HALF, 0]} material={rim}>
+        <torusGeometry args={[0.998, 0.015, 12, 192]} />
       </mesh>
       <Reeds />
     </group>
@@ -136,7 +180,7 @@ function CoinMesh() {
 
 function Reeds() {
   const ref = useRef<THREE.InstancedMesh>(null);
-  const count = 150;
+  const count = 160;
 
   useEffect(() => {
     const mesh = ref.current;
@@ -144,7 +188,7 @@ function Reeds() {
     const dummy = new THREE.Object3D();
     for (let i = 0; i < count; i++) {
       const a = (i / count) * Math.PI * 2;
-      dummy.position.set(Math.sin(a) * 1.01, 0, Math.cos(a) * 1.01);
+      dummy.position.set(Math.sin(a) * 1.014, 0, Math.cos(a) * 1.014);
       dummy.rotation.set(0, a, 0);
       dummy.updateMatrix();
       mesh.setMatrixAt(i, dummy.matrix);
@@ -154,8 +198,8 @@ function Reeds() {
 
   return (
     <instancedMesh ref={ref} args={[undefined, undefined, count]}>
-      <boxGeometry args={[0.026, 0.116, 0.016]} />
-      <meshBasicMaterial color="#000000" />
+      <boxGeometry args={[0.028, THICK * 0.94, 0.018]} />
+      <meshStandardMaterial color="#0a0a0d" metalness={0.94} roughness={0.22} envMapIntensity={1.1} />
     </instancedMesh>
   );
 }
@@ -188,9 +232,11 @@ function tossFromCycle(cycle: number): Toss {
 function FlipToss({
   children,
   reducedMotion,
+  posRef,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   reducedMotion: boolean;
+  posRef: RefObject<THREE.Vector3>;
 }) {
   const ref = useRef<THREE.Group>(null);
   const elapsed = useRef(1.05);
@@ -205,6 +251,7 @@ function FlipToss({
     if (reducedMotion) {
       g.position.set(0, 0.05, 0);
       g.rotation.set(-Math.PI / 2 + 0.18, elapsed.current * 0.35, 0.08);
+      posRef.current.copy(g.position);
       elapsed.current += d;
       return;
     }
@@ -219,6 +266,7 @@ function FlipToss({
 
     if (wrapped > TOSS) {
       g.position.set(toss.current.xDrift * 0.15, Y0, 0);
+      posRef.current.copy(g.position);
       return;
     }
 
@@ -230,6 +278,7 @@ function FlipToss({
     const z = toss.current.zDrift * lift;
 
     g.position.set(x, y, z);
+    posRef.current.copy(g.position);
     g.rotation.order = "XYZ";
     g.rotation.x = -Math.PI / 2 + toss.current.spinSign * u * toss.current.flips * Math.PI * 2;
     g.rotation.y = toss.current.yaw * u * Math.PI * 2;
@@ -239,20 +288,70 @@ function FlipToss({
   return <group ref={ref}>{children}</group>;
 }
 
+function CoinShadow({ posRef }: { posRef: RefObject<THREE.Vector3> }) {
+  const mesh = useRef<THREE.Mesh>(null);
+
+  useFrame(() => {
+    const m = mesh.current;
+    if (!m) return;
+    const p = posRef.current;
+    const mat = m.material as THREE.MeshBasicMaterial;
+    if (p.y < -1.45) {
+      mat.opacity = 0;
+      return;
+    }
+    const t = Math.min(Math.max((p.y + 1.2) / 3.4, 0), 1);
+    m.position.set(p.x * 0.92, -1.18, p.z);
+    const s = 1.28 - t * 0.72;
+    m.scale.setScalar(s);
+    mat.opacity = 0.34 * (1 - t * 0.78);
+  });
+
+  return (
+    <mesh ref={mesh} rotation={[-Math.PI / 2, 0, 0]} renderOrder={-1}>
+      <circleGeometry args={[0.98, 48]} />
+      <meshBasicMaterial color="#000000" transparent opacity={0.22} depthWrite={false} />
+    </mesh>
+  );
+}
+
 function Lights() {
   return (
     <>
-      <ambientLight intensity={0.34} />
-      <directionalLight position={[-2.8, 5.6, 4.2]} intensity={2.8} color="#f5f6f8" />
-      <directionalLight position={[4.4, 2.2, 2.2]} intensity={1.15} color="#c5c8d0" />
-      <directionalLight position={[0.2, -1.6, -3.8]} intensity={0.45} color="#8b90a0" />
-      <pointLight position={[-0.6, 1.1, 2.4]} intensity={0.9} color="#ffffff" distance={12} />
+      <ambientLight intensity={0.14} />
+      <directionalLight position={[-2.6, 5.8, 4.4]} intensity={3.5} color="#f7f8fb" />
+      <directionalLight position={[4.8, 2.4, 2.4]} intensity={1.4} color="#c8ccd6" />
+      <directionalLight position={[0.4, -1.4, -4.0]} intensity={0.72} color="#9aa0b0" />
+      <pointLight position={[-0.8, 1.4, 2.6]} intensity={1.45} color="#ffffff" distance={14} />
+      <spotLight
+        position={[2.1, 4.6, 3.1]}
+        angle={0.38}
+        penumbra={0.82}
+        intensity={1.7}
+        color="#eef0f4"
+      />
     </>
   );
 }
 
+function BarrelClock({
+  effect,
+  paused,
+}: {
+  effect: RefObject<BarrelCrtEffect | null>;
+  paused: boolean;
+}) {
+  useFrame((_, dt) => {
+    const u = effect.current?.uniforms.get("time");
+    if (u && !paused) u.value += dt;
+  });
+  return null;
+}
+
 export function CoinCanvas({ reducedMotion = false, className }: Props) {
   const isMobile = typeof window !== "undefined" && window.innerWidth < 720;
+  const posRef = useRef(new THREE.Vector3(0, 0.05, 0));
+  const barrelRef = useRef<BarrelCrtEffect>(null);
 
   return (
     <div className={className ?? "absolute inset-0"}>
@@ -265,7 +364,7 @@ export function CoinCanvas({ reducedMotion = false, className }: Props) {
         }}
         onCreated={({ gl, camera }) => {
           gl.toneMapping = THREE.ACESFilmicToneMapping;
-          gl.toneMappingExposure = 1.05;
+          gl.toneMappingExposure = 1.14;
           gl.setClearColor("#ffffff", 1);
           camera.lookAt(0, 0.15, 0);
         }}
@@ -273,11 +372,20 @@ export function CoinCanvas({ reducedMotion = false, className }: Props) {
       >
         <LocalEnvironment />
         <Lights />
-        <FlipToss reducedMotion={reducedMotion}>
-          <group scale={isMobile ? 0.72 : 0.78}>
+        <CoinShadow posRef={posRef} />
+        <FlipToss reducedMotion={reducedMotion} posRef={posRef}>
+          <group scale={isMobile ? 0.76 : 0.82}>
             <CoinMesh />
           </group>
         </FlipToss>
+        <BarrelClock effect={barrelRef} paused={reducedMotion} />
+        <EffectComposer multisampling={0} enableNormalPass={false}>
+          <BarrelCrt
+            ref={barrelRef}
+            amount={isMobile ? 0.14 : 0.19}
+            aberration={[0.0028, 0.00115]}
+          />
+        </EffectComposer>
       </Canvas>
     </div>
   );
