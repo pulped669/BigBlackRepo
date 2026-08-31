@@ -17,17 +17,18 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
   warped.x += sin(warped.y * 740.0 + time * 1.6) * 0.0011;
   warped.x += sin(time * 0.55) * 0.0014;
 
-  if (warped.x < 0.0 || warped.x > 1.0 || warped.y < 0.0 || warped.y > 1.0) {
-    outputColor = vec4(0.0);
-    return;
-  }
-
+  vec2 sampleUv = clamp(warped, 0.001, 0.999);
   vec2 cc = uv - 0.5;
   vec2 split = cc * dot(cc, cc) * aberration.x + vec2(aberration.y, 0.0);
-  float r = texture2D(inputBuffer, warped + split).r;
-  float g = texture2D(inputBuffer, warped).g;
-  float b = texture2D(inputBuffer, warped - split).b;
-  outputColor = vec4(r, g, b, 1.0);
+  float r = texture2D(inputBuffer, sampleUv + split).r;
+  float g = texture2D(inputBuffer, sampleUv).g;
+  float b = texture2D(inputBuffer, sampleUv - split).b;
+
+  float fadeX = smoothstep(0.0, 0.14, warped.x) * smoothstep(0.0, 0.14, 1.0 - warped.x);
+  float fadeY = smoothstep(-0.06, 0.08, warped.y) * smoothstep(-0.06, 0.08, 1.0 - warped.y);
+  float fade = fadeX * fadeY;
+  vec3 col = mix(vec3(1.0), vec3(r, g, b), fade);
+  outputColor = vec4(col, 1.0);
 }
 `;
 

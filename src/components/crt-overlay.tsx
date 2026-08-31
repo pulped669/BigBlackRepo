@@ -66,12 +66,6 @@ export function CrtOverlay() {
       <canvas ref={canvasRef} className="crt-snow" />
       <div className="crt-scanlines" />
       <div className="crt-phosphor" />
-      <div className="crt-roll" />
-      <div className="crt-glitch">
-        <span className="crt-glitch-a" />
-        <span className="crt-glitch-b" />
-        <span className="crt-glitch-c" />
-      </div>
       <div className="crt-vignette" />
       <div className="crt-glass" />
       <div className="crt-flicker" />
