@@ -155,7 +155,7 @@
   z-index: 30;
   display: grid;
   place-items: center;
-  background: #ffffff;
+  background: transparent;
   pointer-events: none;
 }
 
@@ -163,6 +163,7 @@
   margin: 0;
   display: flex;
   align-items: baseline;
+  white-space: nowrap;
   font-family: var(--font-display);
   font-size: clamp(2.75rem, 10vw, 6.5rem);
   font-weight: 800;
@@ -171,9 +172,9 @@
   color: #111113;
   text-transform: uppercase;
   text-shadow:
-    -3px 0 #e32323,
-    3px 0 #2ad4ff;
-  animation: loading-distort 0.18s steps(2, end) infinite;
+    -1px 0 rgb(227 35 35 / 0.4),
+    1px 0 rgb(42 212 255 / 0.4);
+  animation: loading-distort 2.4s ease-in-out infinite;
 }
 
 .loading-dots {
@@ -188,29 +189,15 @@
 }
 
 @keyframes loading-distort {
-  0% {
-    transform: skewX(0deg) translate3d(0, 0, 0);
-    clip-path: inset(0 0 0 0);
-  }
-  18% {
-    transform: skewX(-9deg) translate3d(-4px, 1px, 0);
-    clip-path: inset(8% 0 12% 0);
-  }
-  36% {
-    transform: skewX(7deg) translate3d(5px, -1px, 0);
-    clip-path: inset(0 6% 18% 0);
-  }
-  54% {
-    transform: skewX(-4deg) translate3d(-2px, 0, 0);
-    clip-path: inset(14% 0 0 4%);
-  }
-  72% {
-    transform: skewX(6deg) translate3d(3px, 1px, 0);
-    clip-path: inset(0 0 9% 0);
-  }
+  0%,
   100% {
     transform: skewX(0deg) translate3d(0, 0, 0);
-    clip-path: inset(0 0 0 0);
+  }
+  40% {
+    transform: skewX(-1.2deg) translate3d(-1px, 0, 0);
+  }
+  70% {
+    transform: skewX(1deg) translate3d(1px, 0, 0);
   }
 }
 

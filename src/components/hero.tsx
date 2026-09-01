@@ -29,9 +29,11 @@ export function Hero() {
       <h1 className="sr-only">Big Black Coin</h1>
       {sceneReady ? <TopCoins /> : null}
       {booted ? (
-        <Suspense fallback={null}>
-          <CoinCanvas reducedMotion={reduced} onReady={markReady} />
-        </Suspense>
+        <div className={sceneReady ? "absolute inset-0" : "invisible absolute inset-0"}>
+          <Suspense fallback={null}>
+            <CoinCanvas reducedMotion={reduced} onReady={markReady} />
+          </Suspense>
+        </div>
       ) : null}
       {sceneReady ? null : <LoadingScreen />}
     </section>
